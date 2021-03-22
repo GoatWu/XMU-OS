@@ -52,6 +52,8 @@
 
 #include "utility.h"
 #include "system.h"
+#include "hello.h"
+#include "dillist.h"
 
 #ifdef THREADS
 extern int testnum;
@@ -86,6 +88,15 @@ main(int argc, char **argv)
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
+
+    RandomInit(14);
+    DLList *list = new DLList;
+    printf("\n----------------------\n\n");
+    InsertList(10, list);
+    printf("\n----------------------\n\n");
+    RemoveList(10, list);
+    printf("\n----------------------\n\n");
+
     
 #ifdef THREADS
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
@@ -100,7 +111,8 @@ main(int argc, char **argv)
         break;
       }
     }
-
+    Hello myHello;
+    myHello.Hi();
     ThreadTest();
 #endif
 
