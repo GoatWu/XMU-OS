@@ -6,14 +6,20 @@ DLLElement::DLLElement( void *inodetr, int sortKey ) {
 	key = sortKey;
 }
 
-DLList::DLList() {
+DLList::DLList(int Type) {
     first = last = NULL;
+    this->errType = Type;
 }
 
-DLList::~DLList() {}
+DLList::~DLList() {
+    while (Remove(NULL) != NULL);
+}
 
 bool DLList::IsEmpty() {
-	return first == NULL;
+	if (first == NULL && last == NULL) return true;
+    else if (first != NULL && last != NULL) return false;
+    printf("Error! The list is empty but *first or *last isn't NULL!\n");
+    return false;
 }
 
 void DLList::Prepend(void *item) {
@@ -47,20 +53,28 @@ void DLList::Append(void *item) {
 }
 
 void *DLList::Remove(int *keyPtr) {
+    DLLElement *element;
     void *RemovedItem;
     if (this->IsEmpty()) {
         return keyPtr = NULL;
     }
+    element = first;
+    *keyPtr = first->key;
+    if (this->errType == 1) {
+        printf("Remove error\n");
+        currentThread->Yield();
+    }
+    RemovedItem = element->item;
+    first = first->next;
+    if (first == NULL) {
+        last = NULL;
+    }
     else {
-        *keyPtr = first->key;
-        RemovedItem = first->item;
-        first = first->next;
-        if (first == NULL) {
-            last = NULL;
+        if (this->errType == 1) {
+            printf("Remove error\n");
+            currentThread->Yield();
         }
-        else {
-            first->prev=NULL;
-        }
+        first->prev=NULL;
     }
     return RemovedItem;
 }
@@ -68,14 +82,23 @@ void *DLList::Remove(int *keyPtr) {
 void DLList::SortedInsert(void *item, int sortKey) {
     if (this->IsEmpty()) {
         DLLElement *node = new DLLElement(item, sortKey);
+        first = node;
+        if (errType == 2) {
+            printf("SortedInsert error, first != last\n");
+            currentThread->Yield();
+        }
         node->prev = node->next = NULL;
-        first = last = node;
+        last = node;
     }
     else {
         DLLElement *node = new DLLElement(item,sortKey);
         DLLElement *inst = first;
         while (inst != NULL && sortKey >= inst->key) {
             inst = inst->next;
+        }
+        if (errType == 3) {
+            printf("SortedInsert error, the postion lost\n");
+            currentThread->Yield();
         }
         if (inst == NULL) {	//在表尾插入
         	node->prev = last;
@@ -91,6 +114,11 @@ void DLList::SortedInsert(void *item, int sortKey) {
         }
         else {
             node->prev = inst->prev;
+            if (errType == 4) {
+                printf("SortedInsert error, sorting error\n");
+                currentThread->Yield();
+            }
+
             inst->prev->next = node;
             inst->prev = node;
             node->next = inst;

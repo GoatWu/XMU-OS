@@ -11,9 +11,11 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "dillist.h"
 
 // testnum is set in main.cc
-int testnum = 1;
+int testnum = 1, threadNum = 1, insCnt = 1, errType = 0;
+DLList *dllist;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -53,20 +55,39 @@ ThreadTest1()
 }
 
 //----------------------------------------------------------------------
+// ThreadTest2
+//----------------------------------------------------------------------
+
+void DLListThread(int t) {    
+    InsertList(t, insCnt, dllist);
+    RemoveList(t, insCnt, dllist);
+}
+void ThreadTest2() {
+    DEBUG('t', "Entering ThreadTest2");
+    dllist = new DLList(errType);
+    for (int i = 1; i < threadNum; i++) {
+        Thread *t = new Thread("forker thread");
+        t->Fork(DLListThread, i);
+    }
+    DLListThread(threadNum); 
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
 
-void
-ThreadTest()
-{
+void ThreadTest() {
     switch (testnum) {
-    case 1:
-	ThreadTest1();
-	break;
-    default:
-	printf("No test specified.\n");
-	break;
+        case 1:
+        	ThreadTest1();
+        	break;
+        case 2:
+            ThreadTest2();
+            break;
+        default:
+        	printf("No test specified.\n");
+        	break;
     }
 }
 

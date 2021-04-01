@@ -14,7 +14,7 @@ public:
 
 class DLList { 
 public:   
-	DLList();                   // initialize the list          
+	DLList(int errType = 0);        // initialize the list          
 	~DLList();                  // de-allocate the list  
 	void Prepend(void *item);   // add to head of list (set key = min_key-1)  
 	void Append(void *item);    // add to tail of list (set key = max_key+1)  
@@ -33,7 +33,10 @@ public:
 private:   
 	DLLElement *first;          // head of the list, NULL if empty  
 	DLLElement *last;           // last element of the list, NULL if empty
+
+	int errType;                // buggy behaviors to be demonstrate
+	                            // range from 0 to 4
 };
 
-void InsertList(int N, DLList *list);
-void RemoveList(int N, DLList *list);
+void InsertList(int threadNum, int N, DLList *list);
+void RemoveList(int threadNum, int N, DLList *list);
