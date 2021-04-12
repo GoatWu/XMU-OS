@@ -102,24 +102,24 @@ main(int argc, char **argv)
 			        testnum = atoi(argv[1]);
 			        argCount++;
 			        break;
-			    case 't':
+			    case 't':		//记录线程数
 			    	threadNum = atoi(argv[1]);
 			    	argCount++;
 			    	break;
-			    case 'n':
+			    case 'n':		//记录要插入的元素个数
 			    	insCnt = atoi(argv[1]);
 			    	argCount++;
 			    	break;
-			    case 'e':
+			    case 'e':		//记录出错的编号
 			    	errType = atoi(argv[1]);
-			    	if (errType < 0 || errType > 4) {
-			        	printf("Error! errType should in [0, 4].\n");
+			    	if (errType < 1 || errType > 8) {
+			        	printf("Error! errType should in [1, 8].\n");
 			        	ASSERT(errType >= 0 && errType <= 4);
 			        }
 			    	argCount++;
 			    	break;
 		      	default:
-			        testnum = 1;
+			        testnum = 1;		//执行实例
 			        break;
 	      	}
 	    }

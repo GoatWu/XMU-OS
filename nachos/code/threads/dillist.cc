@@ -60,62 +60,77 @@ void *DLList::Remove(int *keyPtr) {
     }
     element = first;
     *keyPtr = first->key;
-    if (this->errType == 1) {
-        printf("Remove error\n");
+    printf("%2d |", first->key);                //输出要删除的元素的值
+    if (this->errType == 7) {                 //（错误七）找出了要删除的元素，但还并未将其删除就切换了线程
+        printf("Remove error 1\n");               
         currentThread->Yield();
     }
-    RemovedItem = element->item;
-    first = first->next;
+    RemovedItem = element->item;                
+    first = first->next;                        //删除操作
     if (first == NULL) {
         last = NULL;
     }
     else {
-        if (this->errType == 1) {
-            printf("Remove error\n");
+        if (this->errType == 8) {            //（错误八）已经删除了元素，但是还未返回删除元素的数值，此时切换
+            printf("Remove error 2\n");
             currentThread->Yield();
         }
         first->prev=NULL;
     }
-    return RemovedItem;
+    return RemovedItem;                     //返回刚刚返回的值
 }
 
 void DLList::SortedInsert(void *item, int sortKey) {
-    if (this->IsEmpty()) {
-        DLLElement *node = new DLLElement(item, sortKey);
-        first = node;
-        if (errType == 2) {
-            printf("SortedInsert error, first != last\n");
+        if (errType == 1) {                                    //（错误一）在应当插入元素之前就切换了线程        
+            printf("SortedInsert error, Switching before inserting\n");      //可能会造成由线程X插入的元素之后被线程Y删除，而不能被自己删除
             currentThread->Yield();
-        }
+        }                                                        
+    if (this->IsEmpty()) {
+        DLLElement *node = new DLLElement(item, sortKey);       //创建新的待插入节点
+        first = node;
         node->prev = node->next = NULL;
         last = node;
+        if (errType == 2) {                                    //（错误二）链表为空的情况下，插入该节点之后立即就切换了进程,同样会造成
+            printf("SortedInsert error, insert one and switch immediately \n");      //由线程X插入的元素之后被线程Y删除，而不能被自己删除
+            currentThread->Yield();
+        }
     }
     else {
         DLLElement *node = new DLLElement(item,sortKey);
         DLLElement *inst = first;
-        while (inst != NULL && sortKey >= inst->key) {
+        while (inst != NULL && sortKey >= inst->key) {      //找出插入的位置
             inst = inst->next;
         }
-        if (errType == 3) {
-            printf("SortedInsert error, the postion lost\n");
+        
+        if (inst == NULL) {	//在表尾插入
+        	node->prev = last;                                 //（错误三）在表尾插入时，只修改了node->prev，而没有修改其他指针
+        	if (errType == 3) {                                   
+            printf("SortedInsert error, pointer error while inserting end of list\n");      
             currentThread->Yield();
         }
-        if (inst == NULL) {	//在表尾插入
-        	node->prev = last;
-        	node->next = NULL;
+            node->next = NULL;
         	last->next = node;
         	last=node;
         }
         else if (inst == first) { //在表头插入
+
+            if (errType == 4) {                                 //（错误四）此时链表不空，而且要在表头进行插入
+            printf("SortedInsert error, switch before insert at the head of list\n");   //但是还未插入该节点就切换了进程
+            currentThread->Yield();
+        }
         	node->prev = NULL;
         	node->next = first;
+            if (errType == 5) {                                 //（错误五）此时链表不空，而且要在表头进行插入
+            printf("SortedInsert error, pointer error while inserting head of list\n");   //但是只将node->next连接，而并未连接first->prev
+            currentThread->Yield();
+        }
         	first->prev = node;
         	first = node;
         }
-        else {
-            node->prev = inst->prev;
-            if (errType == 4) {
-                printf("SortedInsert error, sorting error\n");
+        else {                                               //执行普通的插入操作
+            node->prev = inst->prev;                      
+            if (errType == 6) {                                //（错误六）在链表中间插入时，还未成功插入该节点就切换了进程
+                printf("SortedInsert error, pointer error while inserting middle of list\n");  //只指定了 node->prev而未指定之后指针的操作
                 currentThread->Yield();
             }
 
@@ -168,6 +183,6 @@ void DLList::printList(DLList *list) {
     for (DLLElement *item = list->first; item != NULL; item = item->next) {
         printf("%2d ", item->key);
     }
+    printf("\n");
     putchar(10);
 }
-
