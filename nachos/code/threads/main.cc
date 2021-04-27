@@ -52,9 +52,10 @@
 
 #include "utility.h"
 #include "system.h"
+#include "dllist.h"
 
 #ifdef THREADS
-extern int testnum;
+extern int testnum, threadNum, insCnt, errType;;
 #endif
 
 // External functions used by this file
@@ -86,22 +87,44 @@ main(int argc, char **argv)
 
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
+
     
 #ifdef THREADS
-    for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
-      argCount = 1;
-      switch (argv[0][1]) {
-      case 'q':
-        testnum = atoi(argv[1]);
-        argCount++;
-        break;
-      default:
-        testnum = 1;
-        break;
-      }
+    if (argc == 2 && !strcmp(argv[1], "--help")) {
+    	printf("<usage>: ./nachos [-q testnum] [-t threadNum] [-n insCnt] [-e errType]\n\n");
     }
-
-    ThreadTest();
+    else {
+    	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
+	      	argCount = 1;
+	      	switch (argv[0][1]) {
+		      	case 'q':
+			        testnum = atoi(argv[1]);
+			        argCount++;
+			        break;
+			    case 't':		//记录线程数
+			    	threadNum = atoi(argv[1]);
+			    	argCount++;
+			    	break;
+			    case 'n':		//记录要插入的元素个数
+			    	insCnt = atoi(argv[1]);
+			    	argCount++;
+			    	break;
+			    case 'e':		//记录出错的编号
+			    	errType = atoi(argv[1]);
+			    	if (errType < 1 || errType > 8) {
+			        	printf("Error! errType should in [1, 8].\n");
+			        	ASSERT(errType >= 0 && errType <= 4);
+			        }
+			    	argCount++;
+			    	break;
+		      	default:
+			        testnum = 1;		//执行实例
+			        break;
+	      	}
+	    }
+    	ThreadTest();
+    }
+    
 #endif
 
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
@@ -169,3 +192,4 @@ main(int argc, char **argv)
 				// it from returning.
     return(0);			// Not reached...
 }
+
