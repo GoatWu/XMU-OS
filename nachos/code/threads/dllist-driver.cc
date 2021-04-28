@@ -9,8 +9,9 @@ void InsertList(int threadNum, int N, SynchDLList *slist) {
         int *items = new int[1];
         items[0] = -key;
         item = items;
-        printf("Thread %d: Inserted key %2d | ", threadNum, key);
+        printf("Thread %d: Inserted key %2d\n", threadNum, key);
         slist->SortedInsert(item, key);
+        printf("Thread %d: ", threadNum);
         slist->printList();
     }
 }
@@ -20,6 +21,8 @@ void RemoveList(int threadNum, int N, SynchDLList *slist) {
         int key;
         printf("Thread %d: Removed  key ", threadNum);
         slist->Remove(&key);
+        printf("%2d\n", key);
+        printf("Thread %d: ", threadNum);
         slist->printList();
     }
 }

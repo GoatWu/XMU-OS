@@ -60,7 +60,8 @@ void *DLList::Remove(int *keyPtr) {
     }
     element = first;
     *keyPtr = first->key;
-    printf("%2d |", first->key);                //输出要删除的元素的值
+    // printf("%2d |", first->key);           //输出要删除的元素的值
+    keyPtr[0] = first->key;
     if (this->errType == 7) {                 //（错误七）找出了要删除的元素，但还并未将其删除就切换了线程
         printf("Remove error 1\n");               
         currentThread->Yield();

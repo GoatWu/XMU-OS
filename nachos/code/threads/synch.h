@@ -80,6 +80,9 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+    Semaphore *sem;   // 用一个值为1的信号量表示互斥锁
+    Thread *heldThread;   // 当前获得锁的线程指针
+                    // 若没有线程获得锁则为NULL
 };
 
 // The following class defines a "condition variable".  A condition
@@ -132,5 +135,8 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
+    int blockCnt;
+    Semaphore *sem;
+    Lock *heldLock;
 };
 #endif // SYNCH_H
