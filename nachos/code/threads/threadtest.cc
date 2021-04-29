@@ -12,10 +12,16 @@
 #include "copyright.h"
 #include "system.h"
 #include "dllist.h"
+#include "Table.h"
+#include <time.h>
 
 // testnum is set in main.cc
 int testnum = 1, threadNum = 1, insCnt = 1, errType = 0;
 SynchDLList *sdllist;
+
+// variables for thread-test 3
+int itemNum = 1;
+Table *table;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -73,6 +79,31 @@ void ThreadTest2() {
 }
 
 //----------------------------------------------------------------------
+// ThreadTest3
+//----------------------------------------------------------------------
+
+void TableThread(int t) {
+    int *num = new int[1];
+    num[0] = Random() % 1000;
+    void *ele = num;
+    int position = table->Alloc(ele);
+    if (position != -1) {
+        num[0] = *(int *)table->Get(position);
+        table->Release(position);
+    } 
+}
+void ThreadTest3() {
+    DEBUG('t', "Entering ThreadTest3");
+    RandomInit(unsigned(time(0)));
+    table = new Table(itemNum);
+    for (int i = 1; i < threadNum; i++) {
+        Thread *t = new Thread("forker thread");
+        t->Fork(TableThread, i);
+    }
+    TableThread(threadNum);
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -84,6 +115,9 @@ void ThreadTest() {
         	break;
         case 2:
             ThreadTest2();
+            break;
+        case 3:
+            ThreadTest3();
             break;
         default:
         	printf("No test specified.\n");

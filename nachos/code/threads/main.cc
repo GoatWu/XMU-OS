@@ -53,9 +53,11 @@
 #include "utility.h"
 #include "system.h"
 #include "dllist.h"
+#include "Table.h"
 
 #ifdef THREADS
 extern int testnum, threadNum, insCnt, errType;;
+extern int itemNum;
 #endif
 
 // External functions used by this file
@@ -107,6 +109,7 @@ main(int argc, char **argv)
 			    	break;
 			    case 'n':		//记录要插入的元素个数
 			    	insCnt = atoi(argv[1]);
+			    	itemNum = insCnt;
 			    	argCount++;
 			    	break;
 			    case 'e':		//记录出错的编号
