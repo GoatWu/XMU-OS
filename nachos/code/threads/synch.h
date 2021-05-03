@@ -80,8 +80,7 @@ class Lock {
   private:
     char* name;             // for debugging
     // plus some other stuff you'll need to define
-    int mutex;      // 0表示开，1表示关
-    List *queue;
+    Semaphore *sem;   // 用一个值为1的信号量表示互斥锁
     Thread *heldThread;   // 当前获得锁的线程指针
                     // 若没有线程获得锁则为NULL
 };
@@ -136,7 +135,8 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
-    List *queue; // 等待的线程队列
-    Lock *heldLock; // 记录Condition::wait()函数中的锁
+    int blockCnt;
+    Semaphore *sem;
+    Lock *heldLock;
 };
 #endif // SYNCH_H

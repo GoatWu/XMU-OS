@@ -13,6 +13,7 @@
 #include "system.h"
 #include "dllist.h"
 #include "Table.h"
+#include "BoundedBuffer.h"
 #include <time.h>
 
 // testnum is set in main.cc
@@ -22,6 +23,9 @@ SynchDLList *sdllist;
 // variables for thread-test 3
 int itemNum = 1;
 Table *table;
+
+// variables for thread-test 4
+BoundedBuffer *buffer;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -104,6 +108,31 @@ void ThreadTest3() {
 }
 
 //----------------------------------------------------------------------
+// ThreadTest4
+//----------------------------------------------------------------------
+
+char readBuffer[5], writeBuffer[5];
+void BoundedBufferThread(int t) {
+    if (t & 1) {
+        writeBuffer[0] = Random() % 10 + '0';
+        buffer->Write(writeBuffer, 1);
+    }
+    else {
+        buffer->Read(readBuffer, 1);
+    }
+}
+void ThreadTest4() {
+    DEBUG('t', "Entering ThreadTest4");
+    RandomInit(unsigned(time(0)));
+    buffer = new BoundedBuffer(20);
+    for (int i = 0; i < threadNum; i++) {
+        Thread *t = new Thread("forker thread");
+        t->Fork(BoundedBufferThread, i);
+    }
+    BoundedBufferThread(threadNum);
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -118,6 +147,9 @@ void ThreadTest() {
             break;
         case 3:
             ThreadTest3();
+            break;
+        case 4:
+            ThreadTest4();
             break;
         default:
         	printf("No test specified.\n");

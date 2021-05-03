@@ -93,7 +93,10 @@ main(int argc, char **argv)
     
 #ifdef THREADS
     if (argc == 2 && !strcmp(argv[1], "--help")) {
-    	printf("<usage>: ./nachos [-q testnum] [-t threadNum] [-n insCnt] [-e errType]\n\n");
+    	printf("<threadtest 1>: ./nachos -q 1\n");
+    	printf("<threadtest 2>: ./nachos -rs -q 2 [-t threadNum] [-n insCnt] [-e errType]\n");
+    	printf("<threadtest 3>: ./nachos -rs -q 3 [-t threadNum] [-n itemNum]\n");
+    	printf("<threadtest 4>: ./nachos -rs -q 3 [-t threadNum]\n");
     }
     else {
     	for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
@@ -126,6 +129,7 @@ main(int argc, char **argv)
 	      	}
 	    }
     	ThreadTest();
+    	printf("\n");
     }
     
 #endif
