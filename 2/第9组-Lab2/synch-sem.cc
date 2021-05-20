@@ -102,34 +102,21 @@ Semaphore::V()
 // the test case in the network assignment won't work!
 Lock::Lock(char* debugName) {
     name = debugName;
-    mutex = 0;
-    queue = new List;
     heldThread = NULL;
+    sem = new Semaphore(name, 1); // 初始资源数为1
 }
 Lock::~Lock() {
-    delete queue;
+    delete sem;
 }
 void Lock::Acquire() {
-    ASSERT(!isHeldByCurrentThread()); // 当前线程并未占有锁
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // 禁用中断
-    while (mutex) { // 锁被占有
-        queue->Append((void *)currentThread);
-        currentThread->Sleep();
-    }
-    mutex = 1; // 上锁
-    heldThread = currentThread; // 当前线程占有锁
-    (void) interrupt->SetLevel(oldLevel);   // 重新开中断
+    ASSERT(!isHeldByCurrentThread());
+    sem->P();
+    heldThread = currentThread;
 }
 void Lock::Release() {
-    ASSERT(isHeldByCurrentThread()); // 当前线程占有锁
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // 禁用中断
-    Thread *thread = (Thread *)queue->Remove(); // 取sleep队列头部的线程
-    if (thread != NULL) {
-        scheduler->ReadyToRun(thread);  // 唤醒线程，进入准备运行态
-    }
-    mutex = 0; // 释放锁
-    heldThread = NULL; // 无线程占有锁
-    (void) interrupt->SetLevel(oldLevel);   // 重新开中断
+    ASSERT(isHeldByCurrentThread());
+    sem->V();
+    heldThread = NULL;
 }
 bool Lock::isHeldByCurrentThread() {
     return currentThread == heldThread;
@@ -137,36 +124,31 @@ bool Lock::isHeldByCurrentThread() {
 
 Condition::Condition(char* debugName) {
     name = debugName;
-    queue = new List;
+    blockCnt = 0;
     heldLock = NULL;
+    sem = new Semaphore(debugName, 0);
 }
 Condition::~Condition() {
-    delete queue;
+    delete sem;
 }
 void Condition::Wait(Lock* conditionLock) {
-    conditionLock->Release(); // 释放当前占据的锁，准备进入休眠
-    heldLock = NULL;
-    queue->Append((void *)currentThread); // 当前线程加入休眠队列
-    // nachos要求线程休眠前必须要关中断
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    currentThread->Sleep();
-/*---------- 进入readtorun 后重新被唤醒 ----------*/
-    conditionLock->Acquire(); // 重新获得锁
     heldLock = conditionLock;
-    (void) interrupt->SetLevel(oldLevel);   // 重新开中断
+    conditionLock->Release();
+    blockCnt++;
+    sem->P();
+    conditionLock->Acquire();
 }
-void Condition::Signal(Lock* conditionLock) { 
+void Condition::Signal(Lock* conditionLock) {
     ASSERT(heldLock == conditionLock || heldLock == NULL);
-    Thread *thread = (Thread *)queue->Remove();
-    if (thread != NULL) {
-        scheduler->ReadyToRun(thread);
+    if (blockCnt) {
+        blockCnt--;
+        sem->V();
     }
 }
-void Condition::Broadcast(Lock* conditionLock) { 
-    ASSERT(heldLock == conditionLock);
-    Thread *thread = (Thread *)queue->Remove();
-    while (thread != NULL) {
-        scheduler->ReadyToRun(thread);
-        thread = (Thread *)queue->Remove();
+void Condition::Broadcast(Lock* conditionLock) {
+    ASSERT(heldLock == conditionLock || heldLock == NULL);
+    while (blockCnt) {
+        blockCnt--;
+        sem->V();
     }
 }
